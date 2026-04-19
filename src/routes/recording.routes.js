@@ -4,7 +4,6 @@ const { process, getStatus, getAll, remove } = require('../controllers/recording
 
 router.use(auth);
 
-// Accepts transcript JSON — no audio file, no multer needed
 router.post('/process', process);
 router.get('/', getAll);
 router.get('/:id/status', getStatus);

@@ -4,7 +4,7 @@ const { runPipeline } = require('../services/processingPipeline');
 const { track } = require('../services/usageService');
 const { ok, fail } = require('../utils/responseFormatter');
 
-// Receives transcript text from app (audio never sent to backend)
+// Receives transcript text — transcription done on device via Android STT
 const process = async (req, res) => {
   const { transcript, title, durationSeconds } = req.body;
 
@@ -24,11 +24,11 @@ const process = async (req, res) => {
     durationSeconds: parseInt(durationSeconds),
   });
 
-  // Run pipeline synchronously — Vercel terminates the process after res.send()
-  // so fire-and-forget is not safe on serverless
+  // Run pipeline synchronously — Vercel terminates process after res.send()
   await runPipeline(recording._id, req.userId, transcript);
 
-  ok(res, { recordingId: recording._id, status: 'complete' }, 201);
+  const updated = await Recording.findById(recording._id).lean();
+  ok(res, { recordingId: recording._id, status: updated.status }, 201);
 };
 
 const getStatus = async (req, res) => {
