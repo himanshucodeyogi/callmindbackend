@@ -24,11 +24,11 @@ const process = async (req, res) => {
     durationSeconds: parseInt(durationSeconds),
   });
 
-  // Respond immediately — pipeline runs async in background
-  ok(res, { recordingId: recording._id, status: 'summarizing' }, 201);
+  // Run pipeline synchronously — Vercel terminates the process after res.send()
+  // so fire-and-forget is not safe on serverless
+  await runPipeline(recording._id, req.userId, transcript);
 
-  // Only need summary + task extraction (transcription done on device)
-  runPipeline(recording._id, req.userId, transcript);
+  ok(res, { recordingId: recording._id, status: 'complete' }, 201);
 };
 
 const getStatus = async (req, res) => {
