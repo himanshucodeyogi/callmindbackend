@@ -13,7 +13,7 @@ const register = async (req, res) => {
   const user = await User.findOneAndUpdate(
     { deviceId },
     { name: name.trim() },
-    { upsert: true, new: true, setDefaultsOnInsert: true }
+    { upsert: true, returnDocument: 'after', setDefaultsOnInsert: true }
   );
 
   const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {

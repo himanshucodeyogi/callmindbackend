@@ -32,7 +32,7 @@ const updateCompletion = async (req, res) => {
   const task = await Task.findOneAndUpdate(
     { _id: req.params.id, userId: req.userId },
     { isCompleted },
-    { new: true }
+    { returnDocument: 'after' }
   );
 
   if (!task) return fail(res, 'Task not found', 404);
