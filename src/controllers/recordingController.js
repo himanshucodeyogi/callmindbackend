@@ -28,7 +28,7 @@ const process = async (req, res) => {
   await runPipeline(recording._id, req.userId, transcript);
 
   const updated = await Recording.findById(recording._id).lean();
-  ok(res, { recordingId: recording._id, status: updated.status }, 201);
+  ok(res, { recordingId: recording._id.toString(), status: updated.status }, 201);
 };
 
 const getStatus = async (req, res) => {
