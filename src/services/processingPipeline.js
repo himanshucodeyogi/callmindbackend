@@ -30,7 +30,7 @@ const runPipeline = async (recordingId, userId, transcript) => {
       status: 'complete',
     });
   } catch (err) {
-    console.error(`Pipeline failed for recording ${recordingId}:`, err.message);
+    console.error(`Pipeline failed for recording ${recordingId}:`, err.message, err.status ?? '');
     await Recording.findByIdAndUpdate(recordingId, { status: 'failed' });
   }
 };

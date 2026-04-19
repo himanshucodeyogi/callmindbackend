@@ -27,7 +27,7 @@ const transcribeAudio = async (buffer, originalName) => {
 const generateSummary = async (transcript) => {
   const groq = getGroq();
   const completion = await groq.chat.completions.create({
-    model: 'llama3-70b-8192',
+    model: 'llama-3.3-70b-versatile',
     messages: [
       { role: 'user', content: summaryPrompt(transcript) },
     ],
@@ -45,7 +45,7 @@ const generateSummary = async (transcript) => {
 const extractTasks = async (transcript) => {
   const groq = getGroq();
   const completion = await groq.chat.completions.create({
-    model: 'llama3-70b-8192',
+    model: 'llama-3.3-70b-versatile',
     messages: [
       { role: 'user', content: taskExtractionPrompt(transcript) },
     ],
