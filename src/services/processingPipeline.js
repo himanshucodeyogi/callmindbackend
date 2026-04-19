@@ -1,26 +1,19 @@
 const Recording = require('../models/Recording');
 const Task = require('../models/Task');
-const { transcribeAudio, generateSummary, extractTasks } = require('./groqService');
+const { generateSummary, extractTasks } = require('./groqService');
 
-/**
- * Full async AI pipeline — runs after upload response is sent.
- * Audio buffer is processed in RAM and discarded after this function.
- */
-const runPipeline = async (recordingId, userId, audioBuffer, originalName) => {
+// Pipeline starts from transcript (transcription done on device via Android STT)
+const runPipeline = async (recordingId, userId, transcript) => {
   try {
-    // Step 1: Transcribe
-    await Recording.findByIdAndUpdate(recordingId, { status: 'transcribing' });
-    const transcript = await transcribeAudio(audioBuffer, originalName);
-
-    // Step 2: Summarize
+    // Step 1: Summarize
     await Recording.findByIdAndUpdate(recordingId, { status: 'summarizing' });
     const summary = await generateSummary(transcript);
 
-    // Step 3: Extract tasks
+    // Step 2: Extract tasks
     await Recording.findByIdAndUpdate(recordingId, { status: 'extracting' });
     const rawTasks = await extractTasks(transcript);
 
-    // Step 4: Save results — audio buffer is now garbage collected
+    // Step 3: Save results
     const tasks = rawTasks.map((t) => ({
       recordingId,
       userId,
@@ -33,7 +26,6 @@ const runPipeline = async (recordingId, userId, audioBuffer, originalName) => {
     }
 
     await Recording.findByIdAndUpdate(recordingId, {
-      transcript,
       summary,
       status: 'complete',
     });

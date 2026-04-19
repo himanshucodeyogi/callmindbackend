@@ -4,33 +4,31 @@ const { runPipeline } = require('../services/processingPipeline');
 const { track } = require('../services/usageService');
 const { ok, fail } = require('../utils/responseFormatter');
 
-const upload = async (req, res) => {
-  if (!req.file) return fail(res, 'Audio file is required');
+// Receives transcript text from app (audio never sent to backend)
+const process = async (req, res) => {
+  const { transcript, title, durationSeconds } = req.body;
 
-  const { title, durationSeconds } = req.body;
-  if (!title || !durationSeconds) {
-    return fail(res, 'title and durationSeconds are required');
+  if (!transcript || !title || !durationSeconds) {
+    return fail(res, 'transcript, title, and durationSeconds are required');
   }
 
   const recording = await Recording.create({
     userId: req.userId,
     title,
     durationSeconds: parseInt(durationSeconds),
-    status: 'uploaded',
+    transcript,
+    status: 'summarizing',
   });
 
-  track(req.userId, 'recording_uploaded', { durationSeconds: parseInt(durationSeconds) });
+  track(req.userId, 'recording_uploaded', {
+    durationSeconds: parseInt(durationSeconds),
+  });
 
   // Respond immediately — pipeline runs async in background
-  ok(res, { recordingId: recording._id, status: 'uploaded' }, 201);
+  ok(res, { recordingId: recording._id, status: 'summarizing' }, 201);
 
-  // Kick off AI pipeline with the buffer (never saved to disk)
-  runPipeline(
-    recording._id,
-    req.userId,
-    req.file.buffer,
-    req.file.originalname
-  );
+  // Only need summary + task extraction (transcription done on device)
+  runPipeline(recording._id, req.userId, transcript);
 };
 
 const getStatus = async (req, res) => {
@@ -99,4 +97,4 @@ const remove = async (req, res) => {
   ok(res, { success: true });
 };
 
-module.exports = { upload, getStatus, getAll, remove };
+module.exports = { process, getStatus, getAll, remove };
